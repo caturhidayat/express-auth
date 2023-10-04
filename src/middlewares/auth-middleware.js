@@ -11,9 +11,10 @@ export const authMiddleware = async (req, res, next) => {
         res.status(401).json({
             error: 'Unauthorized'
         }).end()
-    } else {
-    const verifyToken = await jwt.verify(token, sercet_key)
-        console.log(verifyToken)
+    } 
+
+    try {
+        const verifyToken = await jwt.verify(token, sercet_key)
         const user = await prisma.user.findFirst({
             where: {
                 id: verifyToken.payload
@@ -23,13 +24,12 @@ export const authMiddleware = async (req, res, next) => {
                 username: true
             }
         })
-        if(!user) {
-            res.status(401).json({
-                error: 'Unauthorized'
-            })
-        } else {
-            req.user = user
-            next()
-        }
+        req.user = user
+        next()
+    } catch (error) {
+        res.status(401).json({
+            error: 'Unauthorized'
+        })
     }
+    
 }
